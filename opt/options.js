@@ -1,11 +1,10 @@
-var host = "";
-var port = "";
-var apikey = "";
+var username = "";
+var password = "";
 
 document.addEventListener('DOMContentLoaded', function () {
     restoreConfig();
     if (apikey == null) {
-        $("#status").text("Before you can use Pulsarr, please enter the configuration from your Radarr server.");
+        $("#status").text("Before you can use scrape images, please enter your username and password. They will not be stored securely.");
     };
 });
 
@@ -15,9 +14,8 @@ document.getElementById('save').addEventListener('click', function () {
     $("#page *").prop('disabled', true);
     $("#save").toggleClass("unclickable");
     readInputs();
-    url = constructBaseUrl(host, port) + "/api/system/status";
 
-    testApi(url).then(function (response) {
+    testUsernameAndPassword(username, password).then(function (response) {
         saveConfig();
         $("#popup").stop(true).fadeTo('fast', 1);
         $("#spin").spin(false);
@@ -32,77 +30,54 @@ document.getElementById('save').addEventListener('click', function () {
 
 
 function readInputs() {
-    host = httpHost(document.getElementById('host').value.trim());
-    port = document.getElementById('port').value.trim();
-    apikey = document.getElementById('radarrapikey').value.trim();
-}
-
-function constructBaseUrl(host, port) {
-    if (port == "") {
-        return httpHost(host);
-    } else {
-        return httpHost(host) + ":" + port;
-    };
+    username = document.getElementById('username').value.trim();
+    password = document.getElementById('password').value.trim();
 }
 
 
-function testApi(url) {
+function testUsernameAndPassword(username, password) {
     return new Promise(function (resolve, reject) {
-        var http = new XMLHttpRequest();
+        var request = new XMLHttpRequest();
+        var url = "https://mal.moe/api/waifus/all/names"
+        var auth = "Basic " + btoa(username + ':' + password);
 
-        http.open("GET", url, true);
-        http.setRequestHeader("X-Api-Key", apikey);
+        request.open("GET", url, true);
+        request.setRequestHeader('Authorization', auth);
 
-        http.onload = function () {
+        request.onload = function () {
             if (this.status === 200) {
-                resolve(http.statusText);
+                resolve(request.statusText);
             }
             else {
-                reject(Error(http.statusText));
+                reject(Error(request.statusText));
             }
         };
 
-        http.onerror = function () {
-            reject(Error("Unable to communicate with server. Please check host/port."));
+        request.onerror = function () {
+            reject(Error("Invalid username/password. Or the server is down. Can't say."));
         };
 
-        http.send();
+        request.send();
 
     });
 
 }
 
+function saveConfig() {
+    localStorage.setItem("username", username);
+    localStorage.setItem("password", password);
 
-function httpHost(string) {
-    var regex = new RegExp("https{0,1}:\/\/");
-
-    if (regex.exec(string)) {
-        return string;
-    } else {
-        return "http://" + string;
-    }
-}
-
-
-function saveConfig() {   
-    localStorage.setItem("host", host);
-    localStorage.setItem("port", port);
-    localStorage.setItem("apikey", apikey);
-    
     $("#status").text("Sucess! Configuration saved.");
     setTimeout(function () {
         $("#status").text("");
         window.close();
     }, 1500);
 }
-    
 
 function restoreConfig() {
-    host = localStorage.getItem("host");
-    port = localStorage.getItem("port");
-    apikey = localStorage.getItem("apikey");
+    username = localStorage.getItem("username");
+    password = localStorage.getItem("password");
 
-    document.getElementById('host').value = host;
-    document.getElementById('port').value = port;
-    document.getElementById('radarrapikey').value = apikey;
+    document.getElementById('username').value = username;
+    document.getElementById('password').value = password;
 }

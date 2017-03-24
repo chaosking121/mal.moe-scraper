@@ -14,8 +14,38 @@ chrome.runtime.onInstalled.addListener(function () {
               conditions: [
                 new chrome.declarativeContent.PageStateMatcher({
                     pageUrl: {
-                        urlContains: "//www.imdb.com/",
-                        urlMatches: '\/tt\\d{7}\/'
+                        urlContains: "imgur.com/a/",
+                    },
+                }),
+                new chrome.declarativeContent.PageStateMatcher({
+                    pageUrl: {
+                        urlContains: "imgur.com/gallery/",
+                    },
+                }),
+                new chrome.declarativeContent.PageStateMatcher({
+                    pageUrl: {
+                        urlSuffix: "jpg",
+                    },
+                }),
+                new chrome.declarativeContent.PageStateMatcher({
+                    pageUrl: {
+                        urlSuffix: "jpeg",
+                    },
+                }),
+                new chrome.declarativeContent.PageStateMatcher({
+                    pageUrl: {
+                        urlSuffix: "png",
+                    },
+                }),
+                new chrome.declarativeContent.PageStateMatcher({
+                    pageUrl: {
+                        urlSuffix: "gif",
+                    },
+                }),
+                new chrome.declarativeContent.PageStateMatcher({
+                    pageUrl: {
+                        hostContains: "boards.4chan.org",
+                        urlContains: "thread",
                     },
                 })
               ],

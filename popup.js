@@ -1,21 +1,5 @@
 "use strict";
 
-const noMovie = {
-	    "status": 404,
-	    "text": [
-	        {
-	            "images": [
-	                {
-	                    "coverType": "poster",
-	                    "url": "/img/black-hole-poster.jpg"
-	                }],
-	            "overview": "Oh no! Pulsarr has colapsed into a black hole. Please check your configuration and that you are on a valid IMDB movie page (not TV series).",
-	            "title": "Black Hole",
-	            "year": 404
-	        }
-	    ]
-	};
-
 document.addEventListener("DOMContentLoaded", function() {
     $("#popup").fadeTo("fast", 0.5);
     $("#spin").spin();
@@ -23,8 +7,8 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 getCurrentTabUrl(function (url) {
-    if (radarrExt.config.getHost() != null) {
-        radarrExt.lookupMovie(extractIMDBID(url));
+    if (moeExt.config.getUsername() != null) {
+        moeExt.popup.init(url);
     } else {
         chrome.runtime.openOptionsPage();
     }
@@ -32,38 +16,6 @@ getCurrentTabUrl(function (url) {
     $('#config').on('click', function () {
         chrome.runtime.openOptionsPage();
     });
-});
-
-jQuery.fn.changepanel = function (movie) {
-    $('#image').attr("src", movie.images[0].url);
-    $('#title').html(movie.title + "<span> (" + movie.year + ")</span>");
-    $('#description').each(function () {
-        var content = $(this).html(),
-            char = 140;
-        if (content.length > char) {
-            var tmpmaincontent = content.substr(0, char);
-            var last = tmpmaincontent.lastIndexOf(' ');
-            var maincontent = content.substr(0, last);
-            var pluscontent = content.substr(last, content.length - last);
-            var html = maincontent + '<p class="more">' + pluscontent + '&nbsp;</p><button id="dotdotdot" class="dotbutton">(...)&nbsp;</button>';
-            $(this).html(html);
-        }
-    });
-    $("#dotdotdot").on('click', function () {
-        var moreText = "(...)";
-        var lessText = "(less)";
-        var $this = $(this);
-        $this.text($this.text() == lessText ? moreText : lessText);
-        $(".more").slideToggle();
-    });
-};
-
-$("#btnAddSearch").on('mouseover', function(){
-	$("#btnAdd").addClass('dualHover');
-});
-
-$("#btnAddSearch").on('mouseout', function(){
-	$("#btnAdd").removeClass('dualHover');
 });
 
 function getCurrentTabUrl(callback) {
@@ -80,40 +32,23 @@ function getCurrentTabUrl(callback) {
     });
 }
 
-function extractIMDBID(url) {
-    var regex = new RegExp("\/tt\\d{7}\/");
-    var imdbid = regex.exec(url);
-
-    return (imdbid) ? imdbid[0].slice(1, 10) : null;
-}
-
-var radarrExt = {
+var moeExt = {
 
     config: {
-        getRootPath: function () {
-            return radarrExt.server.get("rootfolder", "").text[0].path;
-        },
-        
-        getHost: function () {
-            return localStorage.getItem('host');
+        getAuth: function () {
+            return "Basic " + btoa(localStorage.getItem('username') + ':' + localStorage.getItem('password'));
         },
 
-        getPort: function () {
-            var savedPort = localStorage.getItem('port');
-
-            if (savedPort != "") {
-                return ":" + savedPort;
-            } else {
-                return "";
-            };
+        getUsername: function () {
+            return localStorage.getItem('username');
         },
 
-        getApi: function () {
-            return localStorage.getItem('apikey');
+        getPassword: function () {
+            return localStorage.getItem('password');
         },
 
-        getApiUrl: function () {
-            return radarrExt.config.getHost() + radarrExt.config.getPort() + "/api/";
+        getURL: function () {
+            return "https://mal.moe/api/waifus/";
         },
     },
 
@@ -121,10 +56,10 @@ var radarrExt = {
         get: function (endpoint, params) {
             return new Promise(function (resolve, reject) {
                 var http = new XMLHttpRequest();
-                var url = radarrExt.config.getApiUrl() + endpoint + "?" + params;
+                var url = moeExt.config.getURL() + endpoint;
 
                 http.open("GET", url, true);
-                http.setRequestHeader("X-Api-Key", radarrExt.config.getApi());
+                http.setRequestHeader('Authorization', moeExt.config.getAuth());
 
                 http.onload = function () {
                     if (this.status === 200) {
@@ -149,14 +84,15 @@ var radarrExt = {
         post: function (endpoint, params) {
             return new Promise(function (resolve, reject) {
                 var http = new XMLHttpRequest();
-                var url = radarrExt.config.getApiUrl() + endpoint;
+                var url = moeExt.config.getURL() + endpoint;
 
                 http.open("POST", url, true);
-                http.setRequestHeader("X-Api-Key", radarrExt.config.getApi());
+                http.setRequestHeader('Authorization', moeExt.config.getAuth());
+                http.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
                 http.onload = function () {
-                    if (this.status === 201) {
-                        results = { "text": JSON.parse(http.responseText), "status": http.status };
+                    if (this.status === 200) {
+                        var results = { "text": http.responseText, "status": http.status };
                         resolve(results);
                     }
                     else {
@@ -169,45 +105,26 @@ var radarrExt = {
                     reject(Error("Network Error"));
                 };
 
-                http.send(JSON.stringify(params));
+                http.send(params);
 
             });
         }
     },
 
     popup: {
-        init: function (movie) {
+
+        init: function (url) {
             $("#popup").stop(true).fadeTo('fast', 1);
             $("#popup").removeClass("unclickable");
             $("#spin").spin(false);
-            $('#description').html(movie.text[0].overview);
-            if (movie.status == 200) {
-                radarrExt.popup.profilesById();
-                radarrExt.popup.restoreSettings();
-            }            
-            $('body').changepanel(movie.text[0]);
 
             $("#options").removeClass("hidden");
             $("#buttons").removeClass("hidden");
 
-            $('#btnAdd').on('click', function () {
-                radarrExt.addMovie(
-                		movie.text[0], 
-                		$('#profile').val(), 
-                		$("#monitored").prop('checked'), 
-                		$('#minAvail').val(), 
-                		false
-                );
-            });
-            
-            $('#btnAddSearch').on('click', function () {
-                radarrExt.addMovie(
-                		movie.text[0], 
-                		$('#profile').val(),
-                		$("#monitored").prop('checked'), 
-                		$('#minAvail').val(), 
-                		true
-                );
+            moeExt.popup.loadWaifus();
+
+            $('#btnScrape').on('click', function () {
+                moeExt.scrapeURL($('#waifu').val(), url);
             });
         },
 
@@ -216,100 +133,39 @@ var radarrExt = {
             $("#serverResponse").removeClass("hidden");
         },
 
-        saveSettings: function (monitored, qualityId, minAvail) {
-            localStorage.setItem("monitored", monitored);
-            localStorage.setItem("profile", qualityId);
-            localStorage.setItem("minAvail", minAvail);
-        },
-
-        restoreSettings:function(){
-        	if (localStorage.getItem("monitored") == "true"){
-        		$('#monitored').bootstrapToggle('on');
-        	} else {
-        		$('#monitored').bootstrapToggle('off');
-        	};
-
-            if (localStorage.getItem("minAvail") != null) $('#minAvail').val(localStorage.getItem("minAvail"));
-        },
-
-        profilesById: function () {
-            radarrExt.server.get("profile", "").then(function (response) {
-                var profiles = response.text;
-                for (var i = 0; i < profiles.length; i++) {
-                    $('#profile')
-                        .append($('<option>', { value: profiles[i].id })
-                        .text(profiles[i].name));
+        loadWaifus: function () {
+            moeExt.server.get("all/names", "").then(function (response) {
+                var waifus = response.text;
+                for (var i = 0; i < waifus.length; i++) {
+                    $('#waifu')
+                        .append($('<option>', { value: waifus[i] })
+                        .text(waifus[i]));
                 }
-                if (localStorage.getItem("profile") != null && (localStorage.getItem("profile") <= $('#profile').children('option').length)) {
-                    $('#profile').prop('selectedIndex', localStorage.getItem("profile") - 1);
-                };
             }).catch(function (error) {
-                radarrExt.popup.info("profilesById Failed! " + error)
+                moeExt.popup.info("Failed to get a list of waifus! " + error);
             });
         }
     },
 
-    lookupMovie: function (imdbid) {
-        radarrExt.server.get("movies/lookup", "term=imdbid%3A%20" + imdbid).then(function (response) {
-            radarrExt.popup.init(response);
-        }).catch(function (error) {
-            radarrExt.popup.init(noMovie);
-            $("#options").addClass("hidden");
-            $("#btnAdd").addClass("hidden");
-            radarrExt.popup.info(error + ": Failed to find movie! Please check you are on a valid IMDB movie page (not TV series).")
-        })
-    },
+    scrapeURL: function(waifu, url) {
 
-    addMovie: function (movie, qualityId, monitored, minAvail, addSearch) {
         $("#popup").toggleClass("unclickable");
         $("#popup").fadeTo("fast", 0.5);
         $("#serverResponse").removeClass("hidden");
         $("#serverResponse").spin('large');
-        radarrExt.server.get("rootfolder", "").then(function (response) {
-            var newMovie = {
-                "title": movie.title,
-                "year": movie.year,
-                "qualityProfileId": qualityId,
-                "titleSlug": movie.titleSlug,
-                "images": [
-                  {
-                      "coverType": "poster",
-                      "url": null
-                  },
-                  {
-                      "coverType": "banner",
-                      "url": null
-                  }
-                ],
-                "tmdbid": movie.tmdbId,
-                "rootFolderPath": response.text[0].path,
-                "monitored": monitored,
-                "minimumAvailability": minAvail,
-                "addOptions": {
-                    "searchForMovie": addSearch
-                }
-            };
 
-            radarrExt.server.post("movie", newMovie).then(function (response) {
-                radarrExt.popup.saveSettings(monitored, qualityId, minAvail);
-                $("#popup").stop(true).fadeTo('fast', 1);
-                $('#serverResponse').text("Movie added to Radarr!");
-                $("#serverResponse").removeClass("hidden");
-                setTimeout(function () {
-                    window.close();
-                }, 1500);
-                $("#popup").removeClass("unclickable");
-            }).catch(function (error) {
-                $("#popup").stop(true).fadeTo('fast', 1);
-                radarrExt.popup.info(error + ": Failed to add movie! Please check it is not already in your collection.");
-                $("#popup").toggleClass("unclickable");
-            });
+        var params = "waifu=" + waifu + "&url=" + url;
 
+        moeExt.server.post("scraping/scrape", params).then(function (response) {
+            $("#popup").stop(true).fadeTo('fast', 1);
+            $('#serverResponse').text("Image(s) Scraped");
+            $("#serverResponse").removeClass("hidden");
+            $("#popup").removeClass("unclickable");
         }).catch(function (error) {
             $("#popup").stop(true).fadeTo('fast', 1);
-            radarrExt.popup.info(error + ": Failed to add movie! ");
-            $("#popup").removeClass("unclickable");
-        })
+            moeExt.popup.info(error);
+            $("#popup").toggleClass("unclickable");
+        });
     },
 }
 

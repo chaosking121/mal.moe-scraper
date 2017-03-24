@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Pulsarr</title>
+    <title>Mal.moe</title>
     <!-- CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -20,54 +20,13 @@
 </head>
 <body>
     <div id="popup" class="container">
-        <div id="page">
-            <div id="spin"></div>
-            <div class="row internal-container">
-                <div class="col-xs-4" id="imagediv">
-                    <img id="image" class="img-responsive" src="">
-                </div>
-                <div class="col-xs-8">
-                    <div class="row">
-                        <div class="col-xs-12">
-                            <h2 id="title"><span id="year"></span></h2>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-12">
-                            <p id="description"><span id="dotdotdot"></span></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
         <div id="options" class="options">
             <div class="row internal-container">
                 <div class="col-xs-4 vcenter">
-                    <label class="textpadding">Monitored</label>
+                    <label class="textpadding">Waifu</label>
                 </div>
                 <div class="col-xs-8 vcenter">
-                    <input type="checkbox" id="monitored" checked data-toggle="toggle" data-offstyle="danger" value="true">
-                </div>
-            </div>
-            <div class="row internal-container">
-                <div class="col-xs-4 vcenter">
-                    <label class="textpadding">Min Avail</label>
-                </div>
-                <div class="col-xs-8 vcenter">
-                    <select id="minAvail" class="form-control x-profile">
-                        <option value="announced">Announced</option>
-                        <option value="inCinemas">In Cinemas</option>
-                        <option value="released">Physical/Web</option>
-                        <option value="preDB">Pre DB</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row internal-container">
-                <div class="col-xs-4 vcenter">
-                    <label class="textpadding">Profile</label>
-                </div>
-                <div class="col-xs-8 vcenter">
-                    <select id="profile" class="form-control x-profile"></select>
+                    <select id="waifu" class="form-control x-waifu"></select>
                 </div>
             </div>
         </div>
@@ -79,12 +38,9 @@
             </div>
        		<div class="form-group col-xs-8 text-right">
             	<div class="btn-group">
-	                <button id="btnAdd" class="btn button" title="Add">
+	                <button id="btnScrape" class="btn button" title="Scrape">
 	                    <i class="fa fa-plus" aria-hidden="true"></i>
-	                    Add Movie
-	                </button>
-	                <button id="btnAddSearch" class="btn button" title="Add and Search for movie">
-	        	        <i class="fa fa-search"></i>
+	                    Scrape
 	                </button>
             	</div>
         	</div>

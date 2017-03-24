@@ -1,15 +1,15 @@
 {
   "manifest_version": 2,
 
-  "name": "Pulsarr",
-  "description": "Add movies to Radarr from IMDB",
-  "version": "1.1.1",
-  
+  "name": "Mal.moe Scraper",
+  "description": "Scrape images to Mal.moe",
+  "version": "0.0.1",
+
   "icons": {
-    "16": "/img/icons/pulsarr/16.png",
-    "32": "/img/icons/pulsarr/32.png",
-    "48": "/img/icons/pulsarr/48.png",
-    "128": "/img/icons/pulsarr/128.png"
+    "16": "/img/icons/mal.moe/16.png",
+    "32": "/img/icons/mal.moe/32.png",
+    "48": "/img/icons/mal.moe/48.png",
+    "128": "/img/icons/mal.moe/128.png"
   },
 
   "background": {
@@ -19,12 +19,12 @@
 
   "page_action": {
     "default_icon": {
-      "16": "/img/icons/radarr/16.png",
-      "32": "/img/icons/radarr/32.png",
-      "48": "/img/icons/radarr/48.png"
+      "16": "/img/icons/mal.moe/16.png",
+      "32": "/img/icons/mal.moe/32.png",
+      "48": "/img/icons/mal.moe/48.png"
     },
     "default_popup": "popup.html",
-    "default_title": "Add to Radarr"
+    "default_title": "Scrape Image"
   },
 
   "options_ui": {
